@@ -77,6 +77,20 @@
             box-shadow: 0 4px 8px rgba(255, 105, 135, 0.3);
         }
         
+        /* 添加游戏开始前玩家区域可点击的样式 */
+        .not-started .player {
+            cursor: pointer;
+        }
+        
+        .not-started .player:hover {
+            background-color: rgba(255, 235, 238, 0.5);
+        }
+        
+        /* 游戏开始后禁用点击 */
+        .game-started .player {
+            cursor: default;
+        }
+        
         .player-name {
             font-size: 1.3rem;
             font-weight: bold;
@@ -262,11 +276,12 @@
             <button id="restartBtn">重新开始</button>
         </div>
         <header>
-            <div class="subtitle">看谁是记忆大师！</div>
+            <div class="subtitle">不服来战 看谁是记忆大师！</div>
             <div class="message" id="message">点击"开始游戏"按钮开始游戏！</div>
         </header>
         
-        <div class="game-info">
+        <!-- 添加not-started类，表示游戏未开始 -->
+        <div class="game-info not-started" id="gameInfo">
             <div class="player active" id="player1">
                 <div class="player-name">小公主</div>
                 <div class="player-score">0</div>
@@ -304,6 +319,7 @@
             const player1El = document.getElementById('player1');
             const player2El = document.getElementById('player2');
             const heartsContainer = document.getElementById('hearts');
+            const gameInfoEl = document.getElementById('gameInfo');
             
             // 创建漂浮的爱心
             function createHearts() {
@@ -329,7 +345,11 @@
                 
                 updateScores();
                 updatePlayerTurn();
-                messageEl.textContent = '点击"开始游戏"按钮开始游戏！';
+                messageEl.textContent = '选择先开始的玩家 然后"开始游戏"！';
+                
+                // 添加not-started类，移除game-started类
+                gameInfoEl.classList.add('not-started');
+                gameInfoEl.classList.remove('game-started');
                 
                 // 创建卡片
                 let cards = [];
@@ -496,6 +516,10 @@
                 config.gameStarted = true;
                 messageEl.textContent = `游戏开始！轮到${config.players[config.currentPlayer]}了！`;
                 
+                // 移除not-started类，添加game-started类
+                gameInfoEl.classList.remove('not-started');
+                gameInfoEl.classList.add('game-started');
+                
                 // 直接隐藏所有卡片
                 const cards = document.querySelectorAll('.card');
                 cards.forEach(card => {
@@ -506,6 +530,10 @@
             // 结束游戏
             function endGame() {
                 config.gameStarted = false;
+                
+                // 添加not-started类，移除game-started类
+                gameInfoEl.classList.add('not-started');
+                gameInfoEl.classList.remove('game-started');
                 
                 let winnerMessage;
                 if (config.scores[0] > config.scores[1]) {
@@ -518,6 +546,23 @@
                 
                 messageEl.textContent = winnerMessage;
             }
+            
+            // 添加点击玩家区域选择先开始玩家的事件
+            player1El.addEventListener('click', function() {
+                if (!config.gameStarted) {
+                    config.currentPlayer = 0;
+                    updatePlayerTurn();
+                    messageEl.textContent = `选择${config.players[0]}先开始！点击"开始游戏"`;
+                }
+            });
+            
+            player2El.addEventListener('click', function() {
+                if (!config.gameStarted) {
+                    config.currentPlayer = 1;
+                    updatePlayerTurn();
+                    messageEl.textContent = `选择${config.players[1]}先开始！点击"开始游戏"`;
+                }
+            });
             
             // 事件监听
             startBtn.addEventListener('click', startGame);
