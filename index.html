@@ -196,7 +196,96 @@
             align-items: center;
             justify-content: center;
         }
-        
+
+        /* 游戏结果弹窗样式 */
+        .result-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 1000;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            animation: popup 0.4s ease-out;
+        }
+
+        @keyframes popup {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+            }
+            80% {
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 优化游戏结果弹窗样式 */
+        .result-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 1000;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            animation: popup 0.4s ease-out;
+            min-width: 280px;
+        }
+
+        /* 结果弹窗内容容器 */
+        .popup-content {
+            margin-bottom: 20px;
+        }
+
+        /* 得分显示样式 */
+        .popup-scores {
+            margin: 15px 0;
+            font-size: 1.2rem;
+            font-weight: normal;
+            line-height: 1.4;
+        }
+
+        /* 确定按钮样式 */
+        .popup-close-btn {
+            padding: 10px 50px;
+            border: none;
+            border-radius: 50px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 1px 0px 30px 6px rgb(245 240 240)
+            /* margin-top: 15px; */
+        }
+
+        .popup-close-btn:hover {
+            background-color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-close-btn:active {
+            transform: translateY(0);
+        }
+
         @media (max-width: 600px) {
             .game-board {
                 /* grid-template-columns: repeat(3, 1fr); */
@@ -208,6 +297,20 @@
             
             h1 {
                 font-size: 2rem;
+            }
+            
+            /* 移动端调整结果弹窗 */
+            .result-popup {
+                font-size: 1.3rem;
+                padding: 20px 15px;
+                width: 90%;
+                max-width: 300px;
+                min-width: unset;
+            }
+            
+            /* 移动端调整得分显示 */
+            .popup-scores {
+                font-size: 1.1rem;
             }
         }
         
@@ -509,6 +612,104 @@
                 }, 1500);
             }
             
+            // 显示游戏结果弹窗
+            function showGameResultPopup(resultMessage) {
+                // 创建遮罩层
+                const overlay = document.createElement('div');
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.width = '100%';
+                overlay.style.height = '100%';
+                overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                overlay.style.zIndex = '999';
+                overlay.style.display = 'flex';
+                overlay.style.justifyContent = 'center';
+                overlay.style.alignItems = 'center';
+                overlay.style.animation = 'fadeIn 0.3s ease-out';
+                
+                // 创建弹窗元素
+                const popup = document.createElement('div');
+                popup.classList.add('result-popup');
+                
+                // 创建弹窗内容容器
+                const contentContainer = document.createElement('div');
+                contentContainer.classList.add('popup-content');
+                
+                // 创建结果消息
+                const resultText = document.createElement('div');
+                resultText.textContent = resultMessage;
+                contentContainer.appendChild(resultText);
+                
+                // 创建得分显示
+                const scoresDiv = document.createElement('div');
+                scoresDiv.classList.add('popup-scores');
+                scoresDiv.innerHTML = `
+                    ${config.players[0]}: ${config.scores[0]}分<br>
+                    ${config.players[1]}: ${config.scores[1]}分
+                `;
+                contentContainer.appendChild(scoresDiv);
+                
+                // 添加内容容器到弹窗
+                popup.appendChild(contentContainer);
+                
+                // 创建确定按钮
+                const closeBtn = document.createElement('button');
+                closeBtn.classList.add('popup-close-btn');
+                closeBtn.textContent = '确定';
+                
+                // 添加确定按钮到弹窗
+                popup.appendChild(closeBtn);
+                
+                // 添加到遮罩层
+                overlay.appendChild(popup);
+                
+                // 添加到文档
+                document.body.appendChild(overlay);
+                
+                // 点击确定按钮关闭弹窗
+                closeBtn.addEventListener('click', function() {
+                    closePopup(overlay, popup);
+                });
+                
+                // 点击遮罩层背景也可以关闭弹窗
+                overlay.addEventListener('click', function(event) {
+                    // 只有点击的是遮罩层本身而不是弹窗内容时才关闭
+                    if (event.target === overlay) {
+                        closePopup(overlay, popup);
+                    }
+                });
+                
+                // 关闭弹窗的函数
+                function closePopup(overlay, popup) {
+                    overlay.style.opacity = '0';
+                    popup.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                    popup.style.transition = 'transform 0.3s ease-out';
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(overlay);
+                    }, 300);
+                }
+                
+                // 添加淡入动画
+                const fadeInKeyframes = `
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                `;
+                
+                // 检查是否已存在动画样式
+                let styleElement = document.getElementById('dynamic-styles');
+                if (!styleElement) {
+                    styleElement = document.createElement('style');
+                    styleElement.id = 'dynamic-styles';
+                    document.head.appendChild(styleElement);
+                }
+                
+                styleElement.textContent = fadeInKeyframes;
+            }
+            
             // 开始游戏
             function startGame() {
                 if (config.gameStarted) return;
@@ -545,6 +746,9 @@
                 }
                 
                 messageEl.textContent = winnerMessage;
+                
+                // 显示游戏结果弹窗
+                showGameResultPopup(winnerMessage);
             }
             
             // 添加点击玩家区域选择先开始玩家的事件
